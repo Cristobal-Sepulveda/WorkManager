@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
-import android.content.SharedPreferences
 import android.location.Location
 import android.os.Bundle
 import android.os.IBinder
@@ -22,10 +21,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.Button
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +48,6 @@ import com.example.worktracker.data.data_objects.dbo.LatLngYHoraActualDBO
 import com.example.worktracker.utils.Constants
 import com.example.worktracker.utils.Constants.ACTION_LOCATION_BROADCAST
 import com.example.worktracker.utils.LocationService
-import com.example.worktracker.utils.mostrarSnackBarEnMainThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -147,14 +150,23 @@ fun Greeting(onStartClick: () -> Unit, onPauseClick: () -> Unit, onStopClick: ()
     Scaffold(
         scaffoldState = scaffoldState,
         modifier = Modifier.fillMaxSize(),
-        content = {padding ->
+        floatingActionButton = {
+            FloatingActionButton(onClick = { /* ... */ }) {
+                when(startButtonEnabled.value){
+                    true -> Icon(Icons.Default.PlayArrow, "Localized description")
+                    false -> Icon(Icons.Default.Pause, "Localized description")
+                }
+            }
+
+        },
+        content = { contentPadding ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
-                    .background(colorResource(id = R.color.purple_700)),
+                    .padding(contentPadding)
+                    .background(colorResource(id = R.color.background)),
             ) {
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
