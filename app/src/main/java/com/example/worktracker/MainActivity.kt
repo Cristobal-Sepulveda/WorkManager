@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
+import android.content.SharedPreferences
 import android.location.Location
 import android.os.Bundle
 import android.os.IBinder
@@ -28,25 +29,30 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.worktracker.ui.theme.WorkTrackerTheme
 import androidx.compose.ui.res.colorResource
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.worktracker.data.AppDataSource
 import com.example.worktracker.data.data_objects.dbo.LatLngYHoraActualDBO
 import com.example.worktracker.utils.Constants
 import com.example.worktracker.utils.Constants.ACTION_LOCATION_BROADCAST
 import com.example.worktracker.utils.LocationService
+import com.example.worktracker.utils.mostrarSnackBarEnMainThread
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import java.time.LocalTime
 
 class MainActivity : ComponentActivity() {
     private val appDataSource: AppDataSource by inject()
 
-    private var startButtonEnabled = true
     private var locationServiceBroadcastReceiver = LocationServiceBroadcastReceiver()
     private var locationService: LocationService? = null
     private var locationServiceBound = false
@@ -72,6 +78,11 @@ class MainActivity : ComponentActivity() {
         locationService?.unsubscribeToLocationUpdates()
     }
 
+    private suspend fun guardarRegistroLatLngEnFirestore(){
+        val task = appDataSource.guardarRegistroLatLngEnFirestore()
+        this.mostrarSnackBarEnMainThread(this, task.second)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -87,8 +98,11 @@ class MainActivity : ComponentActivity() {
                 Greeting(
                     onStartClick = {subscribeToLocationUpdatesService()},
                     onPauseClick = {unsubscribeToLocationUpdatesService()},
-                    onStopClick = {},
-                    startButtonEnabled = startButtonEnabled
+                    onStopClick = {
+                        lifecycleScope.launch(Dispatchers.IO){
+                            guardarRegistroLatLngEnFirestore()
+                        }
+                    },
                 )
             }
         }
@@ -109,89 +123,80 @@ class MainActivity : ComponentActivity() {
         override fun onReceive(context: Context, intent: Intent) {
             val location = intent.getParcelableExtra<Location>(Constants.EXTRA_LOCATION)
             val phoneCurrentHour = LocalTime.now().toString()
-            Log.e("LocationServiceBroadcastReceiver",
-                LatLngYHoraActualDBO(
-                    location!!.latitude,
-                    location.longitude,
-                    phoneCurrentHour).toString()
-            )
-            /*lifecycleScope.launch(Dispatchers.IO){
-                appDataSource.guardarGeoPointEnRoom(
-                    GeoPointYHoraActualDBO(
-                        geoPoint,
+            lifecycleScope.launch(Dispatchers.IO){
+                appDataSource.guardarLatLngYHoraEnRoom(
+                    LatLngYHoraActualDBO(
+                        location!!.latitude,
+                        location.longitude,
                         phoneCurrentHour
                     )
                 )
-            }*/
+            }
         }
     }
-}
 
+}
 
 @Composable
 fun Greeting(
     onStartClick: () -> Unit,
     onPauseClick: () -> Unit,
     onStopClick: () -> Unit,
-    startButtonEnabled: Boolean
 ) {
+    val startButtonEnabled = remember { mutableStateOf(true) }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
     ) {
         Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
                 .background(colorResource(id = R.color.purple_700)),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = "WorkTracker",
                 color = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.padding(bottom = 48.dp)
+                modifier = Modifier.padding(vertical = 48.dp)
             )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 24.dp, start = 24.dp, end = 24.dp)
-                    .wrapContentHeight()
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
+                onClick = {
+                    startButtonEnabled.value = false
+                    onStartClick()
+                },
+                enabled = startButtonEnabled.value
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Button(
-                        onClick = { onStartClick() },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text("Start")
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(
-                        onClick = { onPauseClick() },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text("Pause")
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(
-                        onClick = { /* TODO: Stop logic */ },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Stop")
-                    }
-                }
+                Text("Start")
+            }
+            Button(
+                onClick = {
+                    startButtonEnabled.value = true
+                    onPauseClick()
+                },
+                enabled = !startButtonEnabled.value
+            ) {
+                Text("Pause")
+            }
+            Button(
+                onClick = {
+                    startButtonEnabled.value = true
+                    onStopClick()
+                },
+                enabled = !startButtonEnabled.value
+            ) {
+                Text("Stop")
             }
         }
     }
 }
+
+
 
 
 @Preview(showBackground = true)
@@ -202,7 +207,6 @@ fun GreetingPreview() {
             onStartClick = { /* Start logic */ },
             onPauseClick = { /* Pause logic */ },
             onStopClick = { /* Stop logic */ },
-            startButtonEnabled = true
         )
     }
 }

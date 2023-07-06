@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">WorkTracker</string>
     <string name="service_iniciado">Se ha iniciado el registro.</string>
+    <string name="registro_guardado_exito">El registro ha sido guardado con éxito.</string>
+    <string name="registro_guardado_fail">El registro no ha podido ser guardado, intentelo nuevamente.</string>
 </resources>

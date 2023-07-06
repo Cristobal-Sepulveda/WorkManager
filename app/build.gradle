@@ -83,9 +83,11 @@ dependencies {
     // Koin main features for Android
     implementation 'io.insert-koin:koin-android:3.3.3'
 
-    //
+    //localbroadcastmanager
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
 
+    //Material
+    implementation 'com.google.android.material:material:1.9.0'
     //Room dependencies
     implementation "androidx.room:room-ktx:2.5.2"
     implementation "androidx.room:room-runtime:2.5.2"

@@ -5,4 +5,5 @@ import com.example.worktracker.data.data_objects.dbo.LatLngYHoraActualDBO
 
 interface AppDataSource {
     suspend fun guardarLatLngYHoraEnRoom(latLngYHoraActualDBO: LatLngYHoraActualDBO)
+    suspend fun guardarRegistroLatLngEnFirestore(): Pair<Boolean, Int>
 }
