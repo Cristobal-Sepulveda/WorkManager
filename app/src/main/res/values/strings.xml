@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">WorkTracker</string>
+    <string name="service_iniciado">Se ha iniciado el registro.</string>
+</resources>
