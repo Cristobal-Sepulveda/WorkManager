@@ -23,7 +23,7 @@ class MyApp : Application() {
             single { getDatabase(this@MyApp).jwtDao }*/
 
             //REPOSITORY
-            single { AppRepository(applicationContext,get()) }
+            single { AppRepository(applicationContext,get()) as AppDataSource}
         }
 
         startKoin {

@@ -79,8 +79,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private suspend fun guardarRegistroLatLngEnFirestore(){
+        locationService?.unsubscribeToLocationUpdates()
         val task = appDataSource.guardarRegistroLatLngEnFirestore()
-        this.mostrarSnackBarEnMainThread(this, task.second)
+        Log.e("MainActivity", "guardarRegistroLatLngEnFirestore: ${task.second}")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

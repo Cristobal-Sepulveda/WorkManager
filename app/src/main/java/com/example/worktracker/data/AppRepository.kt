@@ -1,6 +1,7 @@
 package com.example.worktracker.data
 
 import android.content.Context
+import android.util.Log
 import com.example.worktracker.R
 import com.example.worktracker.data.daos.LatLngYHoraActualDao
 import com.example.worktracker.data.data_objects.dbo.LatLngYHoraActualDBO
@@ -25,14 +26,20 @@ class AppRepository(private val context: Context,
         withContext(ioDispatcher){
             val date = Calendar.getInstance().time.toString()
             val deferred = CompletableDeferred<Pair<Boolean,Int>>()
+            val lista = latLngYHoraActualDao.obtenerLatLngYHoraActuales()
+            val data = hashMapOf("recorridoDelDia" to lista)
+
             cloudDB.collection("RegistroDeJornada")
                 .document(date)
-                .set(latLngYHoraActualDao.obtenerLatLngYHoraActuales())
+                .set(data)
                 .addOnFailureListener{
+                    Log.e("AppRepository", "guardarRegistroLatLngEnFirestore: ${it.message}")
                     deferred.complete(Pair(false, R.string.registro_guardado_fail))
                 }
                 .addOnSuccessListener{
-                    latLngYHoraActualDao.eliminarLatLngYHoraActuales()
+                    CoroutineScope(ioDispatcher).launch {
+                        latLngYHoraActualDao.eliminarLatLngYHoraActuales()
+                    }
                     deferred.complete(Pair(true, R.string.registro_guardado_exito))
                 }
             return@withContext deferred.await()
