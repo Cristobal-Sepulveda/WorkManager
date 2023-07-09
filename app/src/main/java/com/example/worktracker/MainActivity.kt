@@ -12,6 +12,10 @@ import android.os.IBinder
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +30,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -37,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.worktracker.ui.theme.WorkTrackerTheme
@@ -97,12 +103,6 @@ class MainActivity : ComponentActivity() {
         locationService?.unsubscribeToLocationUpdates()
     }
 
-    private suspend fun guardarRegistroLatLngEnFirestore(){
-        locationService?.unsubscribeToLocationUpdates()
-        val task = appDataSource.guardarRegistroLatLngEnFirestore()
-        Log.e("MainActivity", "guardarRegistroLatLngEnFirestore: ${task.second}")
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -118,11 +118,7 @@ class MainActivity : ComponentActivity() {
                 Greeting(
                     onStartClick = {subscribeToLocationUpdatesService()},
                     onPauseClick = {unsubscribeToLocationUpdatesService()},
-                    onStopClick = {
-                        lifecycleScope.launch(Dispatchers.IO){
-                            guardarRegistroLatLngEnFirestore()
-                        }
-                    },
+                    appDataSource
                 )
             }
         }
@@ -142,22 +138,105 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(onStartClick: () -> Unit, onPauseClick: () -> Unit, onStopClick: () -> Unit, ) {
+fun Greeting(onStartClick: () -> Unit,
+             onPauseClick: () -> Unit,
+             appDataSource: AppDataSource?) {
+
     val startButtonEnabled = remember { mutableStateOf(true) }
     val scaffoldState: ScaffoldState = rememberScaffoldState()
     val coroutineScope: CoroutineScope = rememberCoroutineScope()
+    val showAlert = remember { mutableStateOf(false) }
+
+    fun guardarRegistroLatLngEnFirestore(){
+        coroutineScope.launch(Dispatchers.IO) {
+            val task = appDataSource!!.guardarRegistroLatLngEnFirestore()
+
+            if(!task){
+                coroutineScope.launch {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = "Error. Intentelo nuevamente.",
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            }else{
+                onPauseClick()
+                showAlert.value = false
+                startButtonEnabled.value = true
+                coroutineScope.launch {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = "Registro guardado exitosamente",
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            }
+        }
+    }
+
+    if (showAlert.value) {
+        AlertDialog(
+            title = { Text("Atención") },
+            text = { Text("Si confirmas, tu recorrido se borrará del celular y será enviado a la nube.")},
+            onDismissRequest = { showAlert.value = false },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        guardarRegistroLatLngEnFirestore()
+                    },
+                    content = { Text("OK") }
+                )
+            }
+        )
+    }
 
     Scaffold(
         scaffoldState = scaffoldState,
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
-            FloatingActionButton(onClick = { /* ... */ }) {
-                when(startButtonEnabled.value){
-                    true -> Icon(Icons.Default.PlayArrow, "Localized description")
-                    false -> Icon(Icons.Default.Pause, "Localized description")
+            if(!startButtonEnabled.value) {
+                Column{
+                    /*FAB Stop*/
+                    FloatingActionButton(
+                        onClick = {
+                            showAlert.value = true
+                        },
+                        modifier = Modifier.padding(0.dp, 8.dp)
+                    ) {
+                        Icon(Icons.Default.Stop,"")
+                    }
+                    /*FAB Pause*/
+                    FloatingActionButton(
+                        onClick = {
+                            onPauseClick()
+                            startButtonEnabled.value = true
+                            coroutineScope.launch {
+                                scaffoldState.snackbarHostState.showSnackbar(
+                                    message = "El registro de ruta se ha pausado",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        },
+                        modifier = Modifier.padding(0.dp, 48.dp)
+                    ) {
+                        Icon(Icons.Default.Pause, "")
+                    }
+                }
+            }else{
+                FloatingActionButton(
+                    onClick = {
+                        onStartClick()
+                        startButtonEnabled.value = false
+                        coroutineScope.launch {
+                            scaffoldState.snackbarHostState.showSnackbar(
+                                message = "El registro de ruta ha comenzado",
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    },
+                    modifier = Modifier.padding(0.dp, 48.dp)
+                ) {
+                    Icon(Icons.Default.PlayArrow, "Localized description")
                 }
             }
-
         },
         content = { contentPadding ->
             Column(
@@ -168,48 +247,10 @@ fun Greeting(onStartClick: () -> Unit, onPauseClick: () -> Unit, onStopClick: ()
                     .padding(contentPadding)
                     .background(colorResource(id = R.color.background)),
             ) {
-                Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "WorkTracker",
-                    color = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.padding(vertical = 48.dp)
                 )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                /*Start Button*/
-                Button(
-                    onClick = {
-                        startButtonEnabled.value = false
-                        onStartClick()
-                        coroutineScope.launch {
-                            scaffoldState.snackbarHostState.showSnackbar(
-                                message = "El registro de ruta ha comenzado",
-                                duration = SnackbarDuration.Short
-                            )
-                        }
-                    },
-                    enabled = startButtonEnabled.value
-                ) { Text("Start") }
-
-                /*Pause Button*/
-                Button(
-                    onClick = {
-                        startButtonEnabled.value = true
-                        onPauseClick()
-                    },
-                    enabled = !startButtonEnabled.value
-                ) { Text("Pause") }
-
-                /*Stop Button*/
-                Button(
-                    onClick = {
-                        startButtonEnabled.value = true
-                        onStopClick()
-                    },
-                    enabled = !startButtonEnabled.value
-                ) { Text("Stop") }
-
             }
         },
     )
@@ -222,27 +263,7 @@ fun GreetingPreview() {
         Greeting(
             onStartClick = { /* Start logic */ },
             onPauseClick = { /* Pause logic */ },
-            onStopClick = { /* Stop logic */ },
+            null
         )
     }
 }
-
-/*
-@Preview(showBackground = true)
-@Composable
-fun DisplaySnackBar(){
-    val scaffoldState: ScaffoldState = rememberScaffoldState()
-    val coroutineScope: CoroutineScope = rememberCoroutineScope()
-
-    Scaffold(scaffoldState = scaffoldState){
-        Button(onClick = {
-            coroutineScope.launch {
-                scaffoldState.snackbarHostState.showSnackbar(
-                    message = "El registro de ruta ha comenzado",
-                    duration = SnackbarDuration.Long
-                )
-            }
-            Text(text = "Show SnackBar")
-        }
-    }
-}*/

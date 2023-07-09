@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "583254458103",
-    "project_id": "worktracker-4a471",
-    "storage_bucket": "worktracker-4a471.appspot.com"
+    "project_number": "277593060690",
+    "project_id": "steam-ego-355206",
+    "storage_bucket": "steam-ego-355206.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:583254458103:android:f1979d85c24445afb29df2",
+        "mobilesdk_app_id": "1:277593060690:android:fd72daadacdddaf534b68b",
         "android_client_info": {
           "package_name": "com.example.worktracker"
         }
       },
       "oauth_client": [
         {
-          "client_id": "583254458103-7mi9hv0oeiqa17v3bsp3ntcmnc1kkujh.apps.googleusercontent.com",
+          "client_id": "277593060690-snjompqtvgr9q5dfum1uotvk1surtqu1.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBukcqqEOiqoH2g88zv2iWH0hzzGPuYK08"
+          "current_key": "AIzaSyAVnRM_NoNJxdgamFtHXat6qiC9tTB5taU"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "583254458103-7mi9hv0oeiqa17v3bsp3ntcmnc1kkujh.apps.googleusercontent.com",
+              "client_id": "277593060690-snjompqtvgr9q5dfum1uotvk1surtqu1.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

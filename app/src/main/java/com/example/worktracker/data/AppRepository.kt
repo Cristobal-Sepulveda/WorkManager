@@ -7,6 +7,7 @@ import com.example.worktracker.data.daos.LatLngYHoraActualDao
 import com.example.worktracker.data.data_objects.dbo.LatLngYHoraActualDBO
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.*
+import java.time.LocalDate
 import java.util.*
 
 
@@ -26,30 +27,28 @@ class AppRepository(
         }
     }
 
-    override suspend fun guardarRegistroLatLngEnFirestore(
-    ): Pair<Boolean, Int> = withContext(ioDispatcher){
+    override suspend fun guardarRegistroLatLngEnFirestore():Boolean = withContext(ioDispatcher){
 
-        val deferred = CompletableDeferred<Pair<Boolean,Int>>()
+        val deferred = CompletableDeferred<Boolean>()
 
-        val date = Calendar.getInstance().time.toString()
+        val date = LocalDate.now().toString()
         val lista = latLngYHoraActualDao.obtenerLatLngYHoraActuales()
-        val data = hashMapOf("recorridoDelDia" to lista)
+        val data = hashMapOf(
+            "fecha" to date,
+            "recorridoDelDia" to lista
+        )
 
         cloudDB.collection("RegistroDeJornada")
-            .document(date)
+            .document()
             .set(data)
             .addOnFailureListener{
-                deferred.complete(
-                    Pair(false, R.string.registro_guardado_fail)
-                )
+                deferred.complete(false)
             }
             .addOnSuccessListener{
                 CoroutineScope(ioDispatcher).launch {
                     latLngYHoraActualDao.eliminarLatLngYHoraActuales()
                 }
-                deferred.complete(
-                    Pair(true, R.string.registro_guardado_exito)
-                )
+                deferred.complete(true)
             }
         return@withContext deferred.await()
     }
