@@ -3,4 +3,7 @@
     <string name="service_iniciado">Se ha iniciado el registro.</string>
     <string name="registro_guardado_exito">El registro ha sido guardado con éxito.</string>
     <string name="registro_guardado_fail">El registro no ha podido ser guardado, intentelo nuevamente.</string>
+    <string name="email">Email</string>
+    <string name="password">Contraseña</string>
+    <string name="button_login">Iniciar sesión</string>
 </resources>
