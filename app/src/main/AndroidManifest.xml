@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
 
     <application
@@ -19,7 +20,7 @@
         android:theme="@style/Theme.WorkTracker"
         tools:targetApi="31">
         <activity
-            android:name=".AuthenticationActivity"
+            android:name=".presentation.views.activities.AuthenticationActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity">
@@ -33,7 +34,7 @@
                 android:value="" />
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".presentation.views.activities.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.WorkTracker"
@@ -44,7 +45,7 @@
         </activity>
 
         <service
-            android:name="com.example.worktracker.utils.LocationService"
+            android:name="com.example.worktracker.data.datasources.location.LocationService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="location" />

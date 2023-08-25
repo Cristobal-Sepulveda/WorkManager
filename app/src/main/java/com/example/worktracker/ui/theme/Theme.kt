@@ -50,8 +50,6 @@ private val isCurrentVersionOver32 = Build.VERSION.SDK_INT >= Build.VERSION_CODE
 fun WorkTrackerTheme(darkTheme: Boolean = isSystemInDarkTheme(),
                      dynamicColor: Boolean = true,
                      content: @Composable () -> Unit) {
-
-
     val colorScheme = when {
         dynamicColor && isCurrentVersionOver32 -> {
             val context = LocalContext.current

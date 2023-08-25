@@ -6,4 +6,7 @@
     <string name="email">Email</string>
     <string name="password">Contraseña</string>
     <string name="button_login">Iniciar sesión</string>
+    <string name="homeScreen">Home Screen</string>
+    <string name="tasks_header_image_content_description">Header image\n</string>
+    <string name="navigation_view_header_title">Header Title</string>
 </resources>

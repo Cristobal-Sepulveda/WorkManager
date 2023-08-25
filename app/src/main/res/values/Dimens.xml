@@ -3,5 +3,8 @@
     <dimen name="space_small">8dp</dimen>
     <dimen name="space_medium">16dp</dimen>
     <dimen name="space_large">24dp</dimen>
+    <dimen name="header_height">192dp</dimen>
+    <dimen name="header_padding">16dp</dimen>
+    <dimen name="header_image_width">100dp</dimen>
     <!-- Add more dimension values as needed -->
 </resources>
